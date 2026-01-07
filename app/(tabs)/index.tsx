@@ -1,98 +1,313 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+// app/(tabs)/index.tsx - УПРОЩЕННЫЙ ВАРИАНТ
+import { useEffect, useState } from 'react';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Link } from 'expo-router';
+import HippoView from '@/components/HippoView';
+import StatBar from '@/components/StatBar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useHippo } from '@/context/HippoContext';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { hippo } = useHippo();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
+  // Временное состояние для имени из localStorage
+  const [hippoName, setHippoName] = useState('Hippo');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedName = localStorage.getItem('hippoName');
+      if (savedName) {
+        setHippoName(savedName);
+      }
+    }
+  }, []);
+
+  const getHippoMood = () => {
+    if (!hippo) return 'happy';
+    const { happiness, hunger, energy, cleanliness } = hippo.stats;
+
+    if (hunger > 70) return 'hungry';
+    if (energy < 20) return 'sleepy';
+    if (cleanliness < 30) return 'dirty';
+    if (happiness < 40) return 'sad';
+    return 'happy';
+  };
+
+  const formatAge = (days: number) => {
+    if (days < 7) return `${days} day${days !== 1 ? 's' : ''}`;
+    const weeks = Math.floor(days / 7);
+    return `${weeks} week${weeks !== 1 ? 's' : ''}`;
+  };
+
+  // Простые функции навигации
+  const navigateTo = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.location.href = path;
+    }
+  };
+
+  return (
+    <ThemedView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <ThemedText type="title">{hippoName}</ThemedText>
+          <ThemedText style={styles.age}>
+            Age: {hippo ? formatAge(hippo.age) : '1 day'}
+          </ThemedText>
+        </View>
+        <Link href="/modal">
+          <ThemedText type="link">Settings</ThemedText>
+        </Link>
+      </View>
+
+      {/* Hippo Display */}
+      <HippoView mood={getHippoMood()} size="medium" />
+
+      {/* Stats */}
+      <ThemedView style={styles.statsContainer}>
+        <ThemedText type="subtitle" style={styles.statsTitle}>
+          Stats
         </ThemedText>
+
+        {hippo && (
+          <>
+            <StatBar label="Health" value={Math.round(hippo.stats.health)} color="#4CAF50" />
+            <StatBar label="Hunger" value={Math.round(hippo.stats.hunger)} color="#FF9800" />
+            <StatBar label="Happiness" value={Math.round(hippo.stats.happiness)} color="#E91E63" />
+            <StatBar label="Cleanliness" value={Math.round(hippo.stats.cleanliness)} color="#2196F3" />
+            <StatBar label="Energy" value={Math.round(hippo.stats.energy)} color="#9C27B0" />
+          </>
+        )}
+
+        {!hippo && (
+          <ThemedText style={styles.noStats}>
+            No hippo stats available. Create a hippo first!
+          </ThemedText>
+        )}
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
+
+      {/* Quick Actions */}
+      <View style={styles.quickActions}>
+        <ThemedText type="subtitle" style={styles.actionsTitle}>
+          Quick Actions
         </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigateTo('/(tabs)/care')}
+          >
+            <IconSymbol name="heart.fill" size={28} color="#fff" />
+            <ThemedText style={styles.actionText}>Care</ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.shopButton]}
+            onPress={() => navigateTo('/(tabs)/shop')}
+          >
+            <IconSymbol name="cart.fill" size={28} color="#fff" />
+            <ThemedText style={styles.actionText}>Shop</ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.statsButton]}
+            onPress={() => navigateTo('/(tabs)/stats')}
+          >
+            <IconSymbol name="chart.bar.fill" size={28} color="#fff" />
+            <ThemedText style={styles.actionText}>Stats</ThemedText>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Табы навигации */}
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          style={[styles.tab, styles.activeTab]}
+          onPress={() => navigateTo('/(tabs)')}
+        >
+          <IconSymbol name="house.fill" size={24} color="#4A90E2" />
+          <ThemedText style={[styles.tabText, styles.activeTabText]}>
+            Home
+          </ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.tab}
+          onPress={() => navigateTo('/(tabs)/care')}
+        >
+          <IconSymbol name="heart.fill" size={24} color="#718096" />
+          <ThemedText style={styles.tabText}>Care</ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.tab}
+          onPress={() => navigateTo('/(tabs)/shop')}
+        >
+          <IconSymbol name="cart.fill" size={24} color="#718096" />
+          <ThemedText style={styles.tabText}>Shop</ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.tab}
+          onPress={() => navigateTo('/(tabs)/stats')}
+        >
+          <IconSymbol name="chart.bar.fill" size={24} color="#718096" />
+          <ThemedText style={styles.tabText}>Stats</ThemedText>
+        </TouchableOpacity>
+      </View>
+
+      {/* Tips */}
+      <View style={styles.tips}>
+        <ThemedText style={styles.tipTitle}>💡 Tips:</ThemedText>
+        <ThemedText style={styles.tip}>
+          • Check the <ThemedText style={styles.bold}>Care tab</ThemedText> regularly
+        </ThemedText>
+        <ThemedText style={styles.tip}>
+          • Keep all stats above 30% for a happy hippo
+        </ThemedText>
+        <ThemedText style={styles.tip}>
+          • Low energy? Try the <ThemedText style={styles.bold}>Sleep</ThemedText> action
+        </ThemedText>
+      </View>
+
+      {/* Links */}
+      <View style={styles.links}>
+        <Link href="/onboarding">
+          <ThemedText type="link">Edit Hippo Name</ThemedText>
+        </Link>
+        <ThemedText style={styles.version}>Hippo Tamagotchi v1.0</ThemedText>
+      </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+  age: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginTop: 4,
+  },
+  statsContainer: {
+    marginTop: 30,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 12,
+    padding: 20,
+  },
+  statsTitle: {
+    marginBottom: 15,
+  },
+  noStats: {
+    textAlign: 'center',
+    padding: 20,
+    opacity: 0.7,
+  },
+  quickActions: {
+    marginTop: 25,
+    marginBottom: 30,
+  },
+  actionsTitle: {
+    marginBottom: 15,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  actionButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    padding: 15,
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
+  shopButton: {
+    backgroundColor: '#FF9800',
+  },
+  statsButton: {
+    backgroundColor: '#9C27B0',
+  },
+  actionText: {
+    color: '#fff',
+    fontWeight: '600',
+    marginTop: 8,
+  },
+  // Табы
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    backgroundColor: 'white',
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  tab: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    paddingVertical: 8,
+  },
+  activeTab: {
+    backgroundColor: 'rgba(74, 144, 226, 0.1)',
+    borderRadius: 8,
+  },
+  tabText: {
+    fontSize: 12,
+    marginTop: 4,
+    color: '#718096',
+  },
+  activeTabText: {
+    color: '#4A90E2',
+    fontWeight: '600',
+  },
+  // Остальные стили
+  tips: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: 'rgba(255, 235, 59, 0.2)',
+    borderRadius: 8,
+    marginBottom: 30,
+  },
+  tipTitle: {
+    fontWeight: '600',
     marginBottom: 8,
+    fontSize: 16,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  tip: {
+    marginLeft: 10,
+    marginBottom: 4,
+    fontSize: 14,
+  },
+  bold: {
+    fontWeight: '600',
+  },
+  links: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 15,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  version: {
+    fontSize: 12,
+    opacity: 0.5,
   },
 });

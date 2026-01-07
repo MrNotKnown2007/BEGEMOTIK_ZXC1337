@@ -1,3 +1,4 @@
+// types/hippo.ts
 export type RootStackParamList = {
     onboarding: undefined;
     main: undefined;
@@ -19,7 +20,26 @@ export type HippoStats = {
 export interface Hippo {
     id: string;
     name: string;
-    age: number;
+    age: number; // в днях
     stats: HippoStats;
     createdAt: Date;
+    lastFed?: Date;
+    lastCleaned?: Date;
+    lastPlayed?: Date;
+}
+
+export type HippoMood = 'happy' | 'sad' | 'hungry' | 'sleepy' | 'dirty';
+
+// Типы для контекста
+export interface HippoContextType {
+    hippo: Hippo | null;
+    setHippo: (hippo: Hippo) => void;
+    updateStats: (stats: Partial<HippoStats>) => void;
+    feed: () => void;
+    clean: () => void;
+    play: () => void;
+    sleep: () => void;
+    resetHippo: () => void;
+    hasCompletedOnboarding: boolean;
+    completeOnboarding: (name: string) => void;
 }

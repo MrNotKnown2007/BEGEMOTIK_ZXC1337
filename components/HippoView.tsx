@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { ThemedText } from './themed-text';
 
 interface HippoViewProps {
-    mood?: 'happy' | 'sad' | 'hungry' | 'sleepy';
+    mood?: 'happy' | 'sad' | 'hungry' | 'sleepy' | 'dirty'; // ДОБАВЬТЕ 'dirty'
     size?: 'small' | 'medium' | 'large';
 }
 
@@ -21,6 +21,17 @@ export default function HippoView({
     // Временная заглушка - используем существующую картинку из проекта
     const imageSource = require('@/assets/images/react-logo.png');
 
+    const getMoodText = () => {
+        switch (mood) {
+            case 'happy': return '😊 Happy Hippo';
+            case 'sad': return '😢 Sad Hippo';
+            case 'hungry': return '🍖 Hungry Hippo';
+            case 'sleepy': return '😴 Sleepy Hippo';
+            case 'dirty': return '🛁 Dirty Hippo';
+            default: return '😊 Happy Hippo';
+        }
+    };
+
     return (
         <View style={styles.container}>
             <Image
@@ -32,7 +43,7 @@ export default function HippoView({
                 contentFit="contain"
             />
             <ThemedText style={styles.moodText}>
-                {mood.charAt(0).toUpperCase() + mood.slice(1)} Hippo
+                {getMoodText()}
             </ThemedText>
         </View>
     );
