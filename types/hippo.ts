@@ -49,13 +49,19 @@ export interface Hippo {
     gender: HippoGender;
     age: number;
     stats: HippoStats;
-    outfit: HippoOutfit; // НОВОЕ ПОЛЕ
-    coins: number; // НОВОЕ ПОЛЕ: валюта
+    outfit: HippoOutfit;
+    coins: number;
     createdAt: Date;
     lastFed?: Date;
     lastCleaned?: Date;
     lastPlayed?: Date;
     lastWatered?: Date;
+    // СЧЕТЧИКИ ДЕЙСТВИЙ
+    feedCount: number;
+    cleanCount: number;
+    playCount: number;
+    sleepCount: number;
+    waterCount: number;
 }
 
 export type HippoMood = 'happy' | 'sad' | 'hungry' | 'sleepy' | 'dirty' | 'thirsty';
