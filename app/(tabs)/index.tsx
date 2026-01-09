@@ -5,7 +5,7 @@ import { useHippo } from '@/context/HippoContext';
 import { Link } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Image, // <-- ДОБАВИТЬ ИМПОРТ
+  Image,
   ImageBackground,
   StyleSheet,
   TouchableOpacity,
@@ -64,7 +64,11 @@ export default function HomeScreen() {
       <View style={styles.sidebarLeft} />
 
       <View style={styles.centerContainer}>
-        <ImageBackground source={backgroundImage} style={styles.background}>
+        <ImageBackground 
+          source={backgroundImage} 
+          style={styles.background}
+          resizeMode="cover" // или "contain" в зависимости от того, как должен выглядеть фон
+        >
           <View style={styles.contentWrapper}>
             <View style={styles.header}>
               <ThemedText style={styles.title}>{hippoName}</ThemedText>
@@ -173,10 +177,12 @@ const styles = StyleSheet.create({
   // ===== ЦЕНТРАЛЬНАЯ ОБЛАСТЬ С ФОНОМ =====
   centerContainer: {
     width: '70%',
+    overflow: 'hidden', // чтобы фон не выходил за пределы
   },
   background: {
     flex: 1,
-    resizeMode: 'cover',
+    width: '100%',
+    height: '100%',
   },
   contentWrapper: {
     flex: 1,
@@ -246,7 +252,7 @@ const styles = StyleSheet.create({
   buttonImage: {
     width: 70,
     height: 70,
-    resizeMode: 'contain',
+    resizeMode: 'stretch',
   },
   
   // ===== ПРАВАЯ БОКОВАЯ ПАНЕЛЬ =====
