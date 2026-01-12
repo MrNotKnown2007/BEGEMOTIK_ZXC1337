@@ -1,4 +1,4 @@
-// app/(tabs)/games.tsx - ИСПРАВЛЕННАЯ ВЕРСИЯ
+// app/(tabs)/games.tsx
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useHippo } from '@/context/HippoContext';
@@ -13,21 +13,18 @@ import {
 // Импорты игр
 import BubbleGame from '@/components/mini-games/BubbleGame';
 import DiceGuessGame from '@/components/mini-games/DiceGuessGame';
-// import MemoryGame from '@/components/mini-games/MemoryGame'; // МОЖНО ДОБАВИТЬ ПОЗЖЕ
+import MemoryGame from '@/components/mini-games/MemoryGame';
 
 export default function GamesScreen() {
   const { hippo, addCoins } = useHippo();
-  // ИЗМЕНЕНО: добавлен 'diceGuess' в тип
   const [activeGame, setActiveGame] = useState<'bubble' | 'diceGuess' | 'memory' | null>(null);
   const [gameScore, setGameScore] = useState(0);
 
   // Проверяем, доступны ли игры (например, по энергии)
   const canPlayGame = (hippo?.stats.energy || 0) >= 20;
 
-  // ИЗМЕНЕНО: добавлен 'diceGuess' в тип параметра
   const handleGameStart = (gameType: 'bubble' | 'diceGuess' | 'memory') => {
     if (!canPlayGame) {
-      // ИЗМЕНЕНО: alert на Alert.alert
       Alert.alert('😴 Бегемотик устал!', 'Нужно больше энергии (минимум 20%)');
       return;
     }
@@ -40,16 +37,21 @@ export default function GamesScreen() {
 
     // Вычисляем награды
     const happinessBonus = Math.min(20, score * 0.5); // +0.5 настроения за очко
-    const coinsBonus = Math.floor(score / 5); // +1 монета за каждые 5 очков
+    const coinsBonus = Math.floor(score / 10); // +1 монета за каждые 10 очков
 
-    // Добавляем монеты за игру (10 базовых + бонус)
-    addCoins(10 + coinsBonus);
+    // Разные базовые награды для разных игр
+    let baseCoins = 10;
+    if (activeGame === 'diceGuess') baseCoins = 15;
+    if (activeGame === 'memory') baseCoins = 20;
+
+    // Добавляем монеты за игру
+    addCoins(baseCoins + coinsBonus);
 
     Alert.alert(
       '🎮 Игра окончена!',
       `Вы набрали ${score} очков!\n` +
       `+${Math.round(happinessBonus)} к настроению\n` +
-      `+${10 + coinsBonus} монет`,
+      `+${baseCoins + coinsBonus} монет`,
       [{ text: 'Отлично!', style: 'default' }]
     );
   };
@@ -116,10 +118,11 @@ export default function GamesScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* ИГРА 3: Память (заглушка для будущей игры) */}
+        {/* ИГРА 3: Память */}
         <TouchableOpacity
-          style={[styles.gameCard, styles.comingSoonCard]}
-          disabled={true}
+          style={[styles.gameCard, !canPlayGame && styles.disabledCard]}
+          onPress={() => handleGameStart('memory')}
+          disabled={!canPlayGame}
         >
           <View style={[styles.gameIcon, { backgroundColor: '#9C27B0' }]}>
             <ThemedText style={styles.gameEmoji}>🧠</ThemedText>
@@ -128,8 +131,8 @@ export default function GamesScreen() {
           <ThemedText style={styles.gameDescription}>
             Запоминайте и находите пары карточек
           </ThemedText>
-          <View style={styles.comingSoonBadge}>
-            <ThemedText style={styles.comingSoonText}>🔜 Скоро</ThemedText>
+          <View style={styles.rewardBadge}>
+            <ThemedText style={styles.rewardText}>🎁 Награда: +20 монет</ThemedText>
           </View>
         </TouchableOpacity>
 
@@ -158,6 +161,7 @@ export default function GamesScreen() {
         <ThemedText style={styles.rule}>• Чем больше очков, тем больше награда</ThemedText>
         <ThemedText style={styles.rule}>• Играйте регулярно, чтобы поднимать настроение бегемотика</ThemedText>
         <ThemedText style={styles.rule}>• Получайте бонусные монеты за рекорды</ThemedText>
+        <ThemedText style={styles.rule}>• Игра на память: найдите все 10 пар за 2 минуты</ThemedText>
       </View>
 
       {/* Модальные окна игр */}
@@ -183,6 +187,20 @@ export default function GamesScreen() {
         onRequestClose={handleGameClose}
       >
         <DiceGuessGame
+          onGameEnd={handleGameEnd}
+          onClose={handleGameClose}
+        />
+      </Modal>
+
+      {/* Модальное окно для игры на память */}
+      <Modal
+        visible={activeGame === 'memory'}
+        animationType="slide"
+        transparent={false}
+        statusBarTranslucent={true}
+        onRequestClose={handleGameClose}
+      >
+        <MemoryGame
           onGameEnd={handleGameEnd}
           onClose={handleGameClose}
         />

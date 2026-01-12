@@ -95,8 +95,6 @@ export default function DiceGuessGame({ onGameEnd, onClose }: DiceGuessGameProps
     const checkResult = (guess: number, finalNumber: number) => {
         setIsRolling(false);
 
-        console.log('Проверка результата:', { guess, finalNumber });
-
         const win = guess === finalNumber;
 
         if (win) {
