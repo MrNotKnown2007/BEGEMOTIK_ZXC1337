@@ -6,14 +6,14 @@ import { storage } from '@/utils/storage';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
-    Alert,
-    Image,
-    ImageBackground,
-    Modal,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  ImageBackground,
+  Modal,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 const feedButtonImg = require('@/assets/images/eat_button.png');
@@ -121,7 +121,12 @@ export default function HomeScreen() {
 
           <View style={styles.hippoContainer}>
             {hippo && (
-              <HippoView mood={hippoMood} size="medium" age={(hippo.age as unknown as 'child' | 'parent') || 'child'} />
+              <HippoView 
+                mood={hippoMood} 
+                size="medium" 
+                age={(hippo.age as unknown as 'child' | 'parent') || 'child'}
+                costume={hippo.outfit?.costume}
+              />
             )}
           </View>
 

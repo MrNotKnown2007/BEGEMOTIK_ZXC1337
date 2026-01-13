@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Alert,
+  Image,
   ImageBackground,
   Modal,
   StyleSheet,
@@ -17,11 +18,11 @@ const wardrobeBg = require('@/screens/shop/wardrobe.png');
 
 // Категории одежды с цветами
 const categories = [
-  { id: 'head', name: 'Головной убор', emoji: '🧢', color: '#D8B5E8' },
-  { id: 'upper', name: 'Верх', emoji: '👕', color: '#A8D5FF' },
-  { id: 'lower', name: 'Низ', emoji: '👖', color: '#B5E8A8' },
-  { id: 'feet', name: 'Обувь', emoji: '👟', color: '#FFD4A8' },
-  { id: 'costume', name: 'Костюмы', emoji: '🧸', color: '#FFE8A8' },
+  { id: 'head', name: 'Головной убор', emoji: '🧢', color: '#D8B5E8', icon: require('@/models/icons/shop/head.png') },
+  { id: 'upper', name: 'Верх', emoji: '👕', color: '#A8D5FF', icon: require('@/models/icons/shop/body.png') },
+  { id: 'lower', name: 'Низ', emoji: '👖', color: '#B5E8A8', icon: require('@/models/icons/shop/pants.png') },
+  { id: 'feet', name: 'Обувь', emoji: '👟', color: '#FFD4A8', icon: require('@/models/icons/shop/shoes.png') },
+  { id: 'costume', name: 'Костюмы', emoji: '🧸', color: '#FFE8A8', icon: require('@/models/icons/shop/costumes/dino.png') },
 ];
 
 export default function ShopScreen() {
@@ -31,13 +32,31 @@ export default function ShopScreen() {
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
 
   const currentCategory = categories.find(c => c.id === selectedCategory);
-  const items = selectedCategory ? getAvailableItems().filter(item => item.category === selectedCategory) : [];
+  let items = selectedCategory ? getAvailableItems().filter(item => item.category === selectedCategory) : [];
+  
+  // Фильтруем костюмы по возрасту
+  if (selectedCategory === 'costume') {
+    const allItems = getAvailableItems();
+    const costumeItems = allItems.filter(item => item.category === 'costume');
+    console.log('=== COSTUME DEBUG ===');
+    console.log('Selected category:', selectedCategory);
+    console.log('Hippo age:', hippo?.age);
+    console.log('All items count:', allItems.length);
+    console.log('Costume items before filter:', costumeItems);
+    items = costumeItems.filter(item => !item.ageRestriction || item.ageRestriction === hippo?.age);
+    console.log('Costume items after filter:', items);
+    console.log('Items length:', items.length);
+  }
+  
+  console.log('Current category:', selectedCategory, 'Items count:', items.length);
+  
   const currentItem = items[currentItemIndex];
   const currentOutfit = hippo?.outfit || {};
   const isEquipped = currentItem && currentOutfit[selectedCategory as keyof typeof currentOutfit] === currentItem.id;
   const isUnlocked = currentItem?.unlocked;
 
   const handleCategoryPress = (categoryId: string) => {
+    console.log('Category pressed:', categoryId);
     setSelectedCategory(categoryId);
     setCurrentItemIndex(0);
   };
@@ -101,7 +120,12 @@ export default function ShopScreen() {
         {/* БЕГЕМОТИК В ЦЕНТРЕ */}
         <View style={styles.hippoSection}>
           {hippo && (
-            <HippoView mood="default" size="medium" age={(hippo.age as unknown as 'child' | 'parent') || 'child'} />
+            <HippoView 
+              mood="default" 
+              size="medium" 
+              age={(hippo.age as unknown as 'child' | 'parent') || 'child'}
+              costume={hippo.outfit?.costume}
+            />
           )}
         </View>
 
@@ -117,7 +141,11 @@ export default function ShopScreen() {
               ]}
               onPress={() => handleCategoryPress(category.id)}
             >
-              <ThemedText style={styles.categoryEmoji}>{category.emoji}</ThemedText>
+              <Image
+                source={category.icon}
+                style={styles.categoryIcon}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
           ))}
         </View>
@@ -125,13 +153,14 @@ export default function ShopScreen() {
 
       {/* МОДАЛЬНОЕ ОКНО ВЫБОРА ПРЕДМЕТА */}
       <Modal
-        visible={selectedCategory !== null && items.length > 0}
+        visible={selectedCategory !== null}
         transparent={true}
         animationType="fade"
         onRequestClose={handleCloseModal}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          {items.length > 0 ? (
+            <View style={styles.modalContent}>
             {/* ЗАГОЛОВОК */}
             <View style={styles.modalHeader}>
               <ThemedText style={styles.modalTitle}>
@@ -144,7 +173,15 @@ export default function ShopScreen() {
 
             {/* ПРЕДМЕТ */}
             <View style={styles.itemDisplay}>
-              <ThemedText style={styles.itemEmoji}>{currentItem?.icon}</ThemedText>
+              {typeof currentItem?.icon === 'string' ? (
+                <ThemedText style={styles.itemEmoji}>{currentItem?.icon}</ThemedText>
+              ) : (
+                <Image
+                  source={currentItem?.icon}
+                  style={styles.itemIcon}
+                  resizeMode="contain"
+                />
+              )}
               <ThemedText style={styles.itemName}>{currentItem?.name}</ThemedText>
               <ThemedText style={styles.itemDescription}>{currentItem?.description}</ThemedText>
 
@@ -204,6 +241,20 @@ export default function ShopScreen() {
               )}
             </View>
           </View>
+          ) : (
+            <View style={styles.modalContent}>
+              <ThemedText style={styles.modalTitle}>Нет предметов</ThemedText>
+              <ThemedText style={styles.itemDescription}>
+                В этой категории нет предметов для вашего возраста
+              </ThemedText>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleCloseModal}
+              >
+                <ThemedText style={styles.actionButtonText}>Закрыть</ThemedText>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </Modal>
     </View>
@@ -289,6 +340,10 @@ const styles = StyleSheet.create({
   categoryEmoji: {
     fontSize: 28,
   },
+  categoryIcon: {
+    width: 32,
+    height: 32,
+  },
   // ===== МОДАЛЬНОЕ ОКНО =====
   modalOverlay: {
     flex: 1,
@@ -335,6 +390,11 @@ const styles = StyleSheet.create({
   },
   itemEmoji: {
     fontSize: 64,
+    marginBottom: 12,
+  },
+  itemIcon: {
+    width: 80,
+    height: 80,
     marginBottom: 12,
   },
   itemName: {

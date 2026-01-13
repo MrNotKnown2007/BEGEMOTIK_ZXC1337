@@ -420,10 +420,13 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
     }, [hippo]);
 
     const getAvailableItems = useCallback(() => {
-        return SHOP_ITEMS.map(item => ({
+        const items = SHOP_ITEMS.map(item => ({
             ...item,
             unlocked: unlockedItems.has(item.id)
         }));
+        console.log('getAvailableItems called, total items:', items.length);
+        console.log('Costume items in SHOP_ITEMS:', items.filter(i => i.category === 'costume'));
+        return items;
     }, [unlockedItems]);
 
     useEffect(() => {
@@ -540,6 +543,29 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
             throw error; // Пробрасываем ошибку дальше
         }
     }, []);
+
+    // ФУНКЦИЯ ДЛЯ ОТЛАДКИ - ИЗМЕНЕНИЕ ДЕНЕГ
+    const setCoins = useCallback((amount: number) => {
+        setHippo(prev => {
+            if (!prev) return prev;
+            const updated = {
+                ...prev,
+                coins: amount
+            };
+            storage.setItem('hippoCoins', updated.coins.toString()).catch(
+                error => console.error('Failed to save coins:', error)
+            );
+            return updated;
+        });
+    }, []);
+
+    // Делаем функцию доступной в консоли для отладки
+    useEffect(() => {
+        (window as any).setHippoCoins = setCoins;
+        return () => {
+            delete (window as any).setHippoCoins;
+        };
+    }, [setCoins]);
 
     const value: HippoContextType = {
         hippo,

@@ -22,7 +22,7 @@ export type HippoStats = {
 export type HippoGender = 'male' | 'female';
 
 // НОВЫЕ ТИПЫ ДЛЯ ОДЕЖДЫ И МАГАЗИНА
-export type ClothingCategory = 'head' | 'upper' | 'lower' | 'feet';
+export type ClothingCategory = 'head' | 'upper' | 'lower' | 'feet' | 'costume';
 
 // В types/hippo.ts в типе ClothingItem добавьте:
 export type ClothingItem = {
@@ -31,9 +31,11 @@ export type ClothingItem = {
     description: string;
     price: number;
     category: ClothingCategory;
-    icon: string;
+    icon: any;
     rarity: 'common' | 'rare' | 'epic';
-    unlocked: boolean; // Это поле должно быть
+    unlocked: boolean;
+    ageRestriction?: 'child' | 'parent'; // Ограничение по возрасту
+    costume?: string; // Название папки костюма (dino, bunny, water_costume)
 };
 
 export type HippoOutfit = {
@@ -41,6 +43,7 @@ export type HippoOutfit = {
     upper?: string;
     lower?: string;
     feet?: string;
+    costume?: string; // id костюма
 };
 
 // types/hippo.ts
