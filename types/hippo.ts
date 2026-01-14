@@ -46,6 +46,16 @@ export type HippoOutfit = {
     costume?: string; // id костюма
 };
 
+// Статистика по играм
+export type GameStats = {
+    bubbleGamePlays: number;
+    bubbleGameRecord: number;
+    memoryGamePlays: number;
+    thirdGamePlays: number;
+    totalGamePlays: number;
+    totalCoinsEarned: number;
+};
+
 // types/hippo.ts
 export interface Hippo {
     id: string;
@@ -66,6 +76,8 @@ export interface Hippo {
     playCount: number;
     sleepCount: number;
     waterCount: number;
+    // СТАТИСТИКА ПО ИГРАМ
+    gameStats: GameStats;
 }
 
 export type HippoMood = 'happy' | 'sad' | 'hungry' | 'sleepy' | 'dirty' | 'thirsty';
@@ -77,7 +89,7 @@ export interface HippoContextType {
     updateStats: (stats: Partial<HippoStats>) => void;
     feed: () => void;
     clean: () => void;
-    play: () => boolean; // Изменено: возвращает boolean
+    play: () => boolean;
     sleep: () => void;
     giveWater: () => void;
     resetHippo: () => void;
@@ -88,6 +100,6 @@ export interface HippoContextType {
     unequipItem: (category: ClothingCategory) => void;
     addCoins: (amount: number) => void;
     getAvailableItems: () => ClothingItem[];
-    // Добавляем completeGame (опционально, если хотим использовать)
+    updateGameStats: (gameType: 'bubble' | 'memory' | 'third', score?: number) => void;
     completeGame?: (score: number) => { coinsBonus: number; happinessBonus: number };
 }

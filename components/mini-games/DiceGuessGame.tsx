@@ -1,4 +1,5 @@
 // components/mini-games/DiceGuessGame.tsx
+import { useHippo } from '@/context/HippoContext';
 import React, { useEffect, useState } from 'react';
 import {
     Dimensions,
@@ -19,6 +20,7 @@ const DICE_EMOJIS = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 const DICE_NUMBERS = [1, 2, 3, 4, 5, 6];
 
 export default function DiceGuessGame({ onGameEnd, onClose }: DiceGuessGameProps) {
+    const { updateGameStats } = useHippo();
     const [score, setScore] = useState(0);
     const [round, setRound] = useState(1);
     const [totalRounds] = useState(10);
@@ -137,6 +139,7 @@ export default function DiceGuessGame({ onGameEnd, onClose }: DiceGuessGameProps
 
     const handleFinishGame = () => {
         // Вызывается при нажатии на кнопку "Забрать награду"
+        updateGameStats('third', score);
         onGameEnd(score);
     };
 

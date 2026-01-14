@@ -1,4 +1,5 @@
 // components/mini-games/MemoryGame.tsx
+import { useHippo } from '@/context/HippoContext';
 import React, { useEffect, useState } from 'react';
 import {
     Dimensions,
@@ -53,6 +54,7 @@ const CARD_EMOJIS = [
 ];
 
 export default function MemoryGame({ onGameEnd, onClose }: MemoryGameProps) {
+    const { updateGameStats } = useHippo();
     const [cards, setCards] = useState<Card[]>([]);
     const [moves, setMoves] = useState(0);
     const [matches, setMatches] = useState(0);
@@ -196,6 +198,7 @@ export default function MemoryGame({ onGameEnd, onClose }: MemoryGameProps) {
 
     const handleFinishGame = () => {
         const finalScore = calculateScore();
+        updateGameStats('memory', finalScore);
         onGameEnd(finalScore);
     };
 

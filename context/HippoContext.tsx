@@ -50,6 +50,14 @@ const initialHippo: Hippo = {
     playCount: 0,
     sleepCount: 0,
     waterCount: 0,
+    gameStats: {
+        bubbleGamePlays: 0,
+        bubbleGameRecord: 0,
+        memoryGamePlays: 0,
+        thirdGamePlays: 0,
+        totalGamePlays: 0,
+        totalCoinsEarned: 0,
+    },
 };
 
 export function HippoProvider({ children }: { children: React.ReactNode }) {
@@ -76,7 +84,8 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
                 playCount,
                 sleepCount,
                 waterCount,
-                savedUnlockedItems
+                savedUnlockedItems,
+                savedGameStats
             ] = await Promise.all([
                 storage.getItem('hippoName'),
                 storage.getItem('hippoGender'),
@@ -89,7 +98,8 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
                 storage.getItem('hippoPlayCount'),
                 storage.getItem('hippoSleepCount'),
                 storage.getItem('hippoWaterCount'),
-                storage.getItem('unlockedItems')
+                storage.getItem('unlockedItems'),
+                storage.getItem('hippoGameStats')
             ]);
 
             if (savedName) {
@@ -110,16 +120,22 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
                 if (savedStats) {
                     try {
                         const parsedStats = JSON.parse(savedStats);
+                        const parsedGameStats = savedGameStats ? JSON.parse(savedGameStats) : initialHippo.gameStats;
                         setHippo({
                             ...baseHippo,
-                            stats: { ...initialStats, ...parsedStats }
+                            stats: { ...initialStats, ...parsedStats },
+                            gameStats: parsedGameStats
                         });
                     } catch (e) {
                         console.error('Failed to parse saved stats:', e);
                         setHippo(baseHippo);
                     }
                 } else {
-                    setHippo(baseHippo);
+                    const parsedGameStats = savedGameStats ? JSON.parse(savedGameStats) : initialHippo.gameStats;
+                    setHippo({
+                        ...baseHippo,
+                        gameStats: parsedGameStats
+                    });
                 }
             }
 
@@ -307,6 +323,37 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
         return { coinsBonus, happinessBonus };
     }, [hippo?.stats, addCoins, updateStats]);
 
+    // Обновление статистики по играм
+    const updateGameStats = useCallback((gameType: 'bubble' | 'memory' | 'third', score: number = 0) => {
+        setHippo(prev => {
+            if (!prev) return prev;
+            const updatedGameStats = { ...prev.gameStats };
+            
+            if (gameType === 'bubble') {
+                updatedGameStats.bubbleGamePlays += 1;
+                updatedGameStats.bubbleGameRecord = Math.max(updatedGameStats.bubbleGameRecord, score);
+            } else if (gameType === 'memory') {
+                updatedGameStats.memoryGamePlays += 1;
+            } else if (gameType === 'third') {
+                updatedGameStats.thirdGamePlays += 1;
+            }
+            
+            updatedGameStats.totalGamePlays += 1;
+            updatedGameStats.totalCoinsEarned += Math.floor(score / 10);
+            
+            const updated = {
+                ...prev,
+                gameStats: updatedGameStats,
+            };
+            
+            storage.setItem('hippoGameStats', JSON.stringify(updatedGameStats)).catch(
+                error => console.error('Failed to save game stats:', error)
+            );
+            
+            return updated;
+        });
+    }, []);
+
     const sleep = useCallback(() => {
         if (!hippo) return;
 
@@ -357,7 +404,6 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
         const item = SHOP_ITEMS.find(i => i.id === itemId);
         if (!item || !hippo) return false;
         if (hippo.coins >= item.price) {
-            console.log('buyItem called with:', itemId, 'category:', item.category);
             // Все изменения в одном setHippo вызове
             setHippo(prev => {
                 if (!prev) return prev;
@@ -375,13 +421,11 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
                     updatedOutfit.lower = undefined;
                     updatedOutfit.feet = undefined;
                     updatedOutfit.costume = itemId;
-                    console.log('Setting costume to:', itemId);
                 } 
                 // If it's a regular item, remove costume
                 else if (['head', 'upper', 'lower', 'feet'].includes(item.category)) {
                     updatedOutfit.costume = undefined;
                     updatedOutfit[item.category as keyof HippoOutfit] = itemId;
-                    console.log('Setting', item.category, 'to:', itemId);
                 }
                 
                 const updated = {
@@ -389,8 +433,6 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
                     coins: updatedCoins,
                     outfit: updatedOutfit
                 };
-                
-                console.log('Updated outfit:', updatedOutfit);
                 
                 // Сохраняем оба изменения
                 storage.setItem('hippoCoins', updatedCoins.toString()).catch(
@@ -475,8 +517,6 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
             ...item,
             unlocked: unlockedItems.has(item.id)
         }));
-        console.log('getAvailableItems called, total items:', items.length);
-        console.log('Costume items in SHOP_ITEMS:', items.filter(i => i.category === 'costume'));
         return items;
     }, [unlockedItems]);
 
@@ -627,7 +667,7 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
         play,
         sleep,
         giveWater,
-        resetHippo, // Теперь функция будет работать правильно
+        resetHippo,
         hasCompletedOnboarding,
         completeOnboarding,
         buyItem,
@@ -635,6 +675,7 @@ export function HippoProvider({ children }: { children: React.ReactNode }) {
         unequipItem,
         addCoins,
         getAvailableItems,
+        updateGameStats,
     };
 
     if (isLoading) {

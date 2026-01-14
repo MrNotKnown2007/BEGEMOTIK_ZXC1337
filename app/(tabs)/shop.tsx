@@ -3,15 +3,15 @@ import HippoView from '@/components/HippoView';
 import { ThemedText } from '@/components/themed-text';
 import { useHippo } from '@/context/HippoContext';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
-  Alert,
-  Image,
-  ImageBackground,
-  Modal,
-  StyleSheet,
-  TouchableOpacity,
-  View
+    Alert,
+    Image,
+    ImageBackground,
+    Modal,
+    StyleSheet,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 const wardrobeBg = require('@/screens/shop/wardrobe.png');
@@ -26,16 +26,13 @@ const categories = [
 ];
 
 const moneyIcon = require('@/models/icons/stats/money.png');
+const restartIcon = require('@/models/icons/games/restart.png');
 
 export default function ShopScreen() {
   const router = useRouter();
   const { hippo, buyItem, equipItem, unequipItem, getAvailableItems } = useHippo();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
-
-  useEffect(() => {
-    console.log('ShopScreen: hippo updated:', hippo?.outfit);
-  }, [hippo?.outfit]);
 
   const currentCategory = categories.find(c => c.id === selectedCategory);
   let items = selectedCategory ? getAvailableItems().filter(item => item.category === selectedCategory) : [];
@@ -114,7 +111,7 @@ export default function ShopScreen() {
       <ImageBackground source={wardrobeBg} style={styles.background} resizeMode="stretch">
         {/* КНОПКА НАЗАД */}
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <ThemedText style={styles.backButtonText}>←</ThemedText>
+          <Image source={restartIcon} style={styles.backButtonIcon} />
         </TouchableOpacity>
 
         {/* МОНЕТЫ СВЕРХУ */}
@@ -285,13 +282,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     left: 12,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    width: 90,
+    height: 90,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
+  },
+  backButtonIcon: {
+    width: 90,
+    height: 90,
+    resizeMode: 'contain',
   },
   backButtonText: {
     fontSize: 24,

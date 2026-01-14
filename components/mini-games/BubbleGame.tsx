@@ -1,3 +1,4 @@
+import { useHippo } from '@/context/HippoContext';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     Animated,
@@ -44,6 +45,7 @@ interface BubbleGameProps {
 }
 
 export default function BubbleGame({ onGameEnd, onClose }: BubbleGameProps) {
+    const { updateGameStats } = useHippo();
     const [score, setScore] = useState(0);
     const [timeLeft, setTimeLeft] = useState(30);
     const [bubbles, setBubbles] = useState<Bubble[]>([]);
@@ -160,6 +162,7 @@ export default function BubbleGame({ onGameEnd, onClose }: BubbleGameProps) {
 
     const handleClose = () => {
         if (gameFinished) {
+            updateGameStats('bubble', score);
             onGameEnd(score);
         } else {
             onClose();

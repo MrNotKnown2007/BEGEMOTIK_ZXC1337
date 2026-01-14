@@ -163,8 +163,6 @@ export default function HippoView({
 }: HippoViewProps) {
     const imageSource = getMoodImage(mood, age, costume);
     const sizeStyle = getSizeStyle(size);
-    
-    console.log('HippoView rendered with costume:', costume, 'age:', age, 'mood:', mood);
 
     return (
         <View style={styles.container}>
